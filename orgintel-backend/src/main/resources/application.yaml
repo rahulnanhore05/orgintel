@@ -1,0 +1,97 @@
+spring:
+  application:
+    name: orgintel-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/orgintel?stringtype=unspecified}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 30MB
+      enabled: true
+  ai:
+    google:
+      genai:
+        api-key: ${GEMINI_API_KEY:${CAREERORBIT_GEMINI_API_KEY:}}
+        chat:
+          options:
+            model: ${GEMINI_CHAT_MODEL:gemini-3.5-flash-lite}
+        embedding:
+          api-key: ${GEMINI_API_KEY:${CAREERORBIT_GEMINI_API_KEY:}}
+          text:
+            options:
+              model: ${GEMINI_EMBEDDING_MODEL:gemini-embedding-2}
+              dimensions: 768
+    vectorstore:
+      pgvector:
+        initialize-schema: ${SPRING_AI_VECTORSTORE_PGVECTOR_INITIALIZE_SCHEMA:true}
+        dimensions: 768
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+orgintel:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      access-token-expiration-ms: 900000 # 15 minutes
+      refresh-token-expiration-ms: 604800000 # 7 days
+      issuer: orgintel-backend
+  storage:
+    mode: ${STORAGE_MODE:local}
+    local-path: ${STORAGE_LOCAL_PATH:./storage/uploads}
+  ai:
+    provider: ${AI_PROVIDER:gemini}
+  ingestion:
+    worker-enabled: ${INGESTION_WORKER_ENABLED:true}
+    poll-interval-ms: 5000
+    batch-size: 5
+    lease-duration-seconds: 300
+    max-attempts: 3
+    chunk-size: 1500
+    chunk-overlap: 300
+  retrieval:
+    keyword-limit: 20
+    vector-limit: 20
+    final-context-limit: 6
+    rrf-k: 60

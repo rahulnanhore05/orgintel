@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: orgintel
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-orgintel}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - orgintel-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: orgintel-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-orgintel}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-orgintel}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-orgintel_password}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      ORGINTEL_SECURITY_JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      ORGINTEL_SECURITY_JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-3600000}
+      ORGINTEL_SECURITY_JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+      ORGINTEL_AI_GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      ORGINTEL_AI_GEMINI_CHAT_MODEL: ${GEMINI_CHAT_MODEL:-gemini-2.0-flash}
+      ORGINTEL_AI_GEMINI_EMBEDDING_MODEL: ${GEMINI_EMBEDDING_MODEL:-text-embedding-004}
+      ORGINTEL_STORAGE_LOCAL_BASE_DIR: /app/storage
+      ORGINTEL_INGESTION_WORKER_ENABLED: "true"
+      ORGINTEL_INGESTION_WORKER_POLL_INTERVAL_MS: 3000
+    volumes:
+      - document_storage:/app/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    networks:
+      - orgintel-network
+
+volumes:
+  postgres_data:
+    name: orgintel_postgres_data
+  document_storage:
+    name: orgintel_document_storage
+
+networks:
+  orgintel-network:
+    name: orgintel_network

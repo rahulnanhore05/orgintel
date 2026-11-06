@@ -1,0 +1,39 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
+      - org.springframework.ai.model.google.genai.autoconfigure.chat.GoogleGenAiChatAutoConfiguration
+      - org.springframework.ai.model.google.genai.autoconfigure.embedding.GoogleGenAiEmbeddingConnectionAutoConfiguration
+      - org.springframework.ai.model.google.genai.autoconfigure.embedding.GoogleGenAiTextEmbeddingAutoConfiguration
+  ai:
+    vectorstore:
+      pgvector:
+        initialize-schema: false
+  datasource:
+    url: jdbc:postgresql://localhost:5434/orgintel_test?stringtype=unspecified
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+orgintel:
+  security:
+    jwt:
+      secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      access-token-expiration-ms: 60000
+      refresh-token-expiration-ms: 300000
+      issuer: orgintel-test
+  storage:
+    mode: local
+    local-path: ./target/test-storage
+  ai:
+    provider: mock
+  ingestion:
+    worker-enabled: false
