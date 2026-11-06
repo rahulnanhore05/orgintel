@@ -143,17 +143,6 @@ OrgIntel/
 │   ├── package.json
 │   └── vite.config.js
 │
-├── screenshot/                        # Application UI screenshots
-│   ├── register-page.png
-│   ├── workspace-creation-page.png
-│   ├── join-via-invitation.png
-│   ├── organization-management-page.png
-│   ├── document-upload.png
-│   ├── documents-overview-page.png
-│   ├── document-info-page.png
-│   ├── search-document-page.png
-│   └── grounded-qa-page.png
-│
 └── README.md
 ```
 
